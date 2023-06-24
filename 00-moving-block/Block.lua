@@ -1,16 +1,11 @@
 Block = Class {}
 
-local BLOCK_MAX_SPEED = 10
-local BLOCK_ACCELERATION = 8
-local BLOCK_FRICTION = 50
+local BLOCK_DEFAULT_SPEED = 200
 
 function Block:init(size)
   self.size = size
   self.x = (WINDOW_WIDTH - size) / 2
   self.y = (WINDOW_HEIGHT - size) / 2
-
-  self.vx = 0
-  self.vy = 0
 end
 
 function Block:render()
@@ -18,26 +13,35 @@ function Block:render()
 end
 
 function Block:update(dt)
-  if love.keyboard.isDown('up') then
-    self.vy = math.max(-BLOCK_MAX_SPEED, self.vy - BLOCK_ACCELERATION * dt)
-  elseif love.keyboard.isDown('down') then
-    self.vy = math.min(BLOCK_MAX_SPEED, self.vy + BLOCK_ACCELERATION * dt)
-  elseif self.vy < 0 then
-    self.vy = math.max(0, self.vy + BLOCK_FRICTION * dt)
-  elseif self.vy > 0 then
-    self.vy = math.min(0, self.vy - BLOCK_FRICTION * dt)
+  local speed = BLOCK_DEFAULT_SPEED
+
+  if love.keyboard.isDown('lshift') then
+    speed = speed * 2
   end
 
-  if love.keyboard.isDown('right') then
-    self.vx = math.min(BLOCK_MAX_SPEED, self.vx + BLOCK_ACCELERATION * dt)
-  elseif love.keyboard.isDown('left') then
-    self.vx = math.max(-BLOCK_MAX_SPEED, self.vx - BLOCK_ACCELERATION * dt)
-  elseif self.vx > 0 then
-    self.vx = math.max(0, self.vx - BLOCK_FRICTION * dt)
-  elseif self.vx < 0 then
-    self.vx = math.min(0, self.vx + BLOCK_FRICTION * dt)
+  if not (love.keyboard.isDown('left') and love.keyboard.isDown('right'))
+      and (love.keyboard.isDown('left') or love.keyboard.isDown('right')) then
+    local direction = love.keyboard.isDown('left') and -1 or 1
+
+    self.x = self.x + (speed * dt * direction)
   end
 
-  self.x = self.x + self.vx
-  self.y = self.y + self.vy
+  if not (love.keyboard.isDown('up') and love.keyboard.isDown('down'))
+      and (love.keyboard.isDown('up') or love.keyboard.isDown('down')) then
+    local direction = love.keyboard.isDown('up') and -1 or 1
+
+    self.y = self.y + (speed * dt * direction)
+  end
+
+  if self.x < 0 then
+    self.x = 0
+  elseif (self.x + self.size) > WINDOW_WIDTH then
+    self.x = WINDOW_WIDTH - self.size
+  end
+
+  if self.y < 0 then
+    self.y = 0
+  elseif (self.y + self.size) > WINDOW_HEIGHT then
+    self.y = WINDOW_HEIGHT - self.size
+  end
 end
